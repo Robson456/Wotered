@@ -1,8 +1,8 @@
-import React, { Children } from "react";
+import React  from "react";
 import {
   createBrowserRouter,
   RouterProvider,
-  Route,
+  
 
 } from "react-router-dom";
 import Root from "./routes";
