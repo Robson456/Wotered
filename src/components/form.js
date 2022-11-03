@@ -3,8 +3,8 @@ import {initializeApp} from 'firebase/app'
 import {
   getFirestore,
   collection,
-  getDocs,
-  addDoc, deleteDoc, doc, setIndexConfiguration
+  onSnapshot,
+  addDoc, deleteDoc, doc, 
 
 } from 'firebase/firestore'
 
@@ -17,17 +17,13 @@ const firebaseConfig = {
   appId: "1:908874860023:web:2188d74c8bf46b78f35af2"
 };
 
-
 initializeApp(firebaseConfig)
 
 const db = getFirestore()
 
 const colRef = collection(db, 'plants')
 
-
-
-getDocs(colRef)
-.then((snapshot)=> {
+onSnapshot(colRef, (snapshot) => {
   let plants = []
 
   snapshot.docs.forEach((doc)=>{
@@ -36,37 +32,26 @@ getDocs(colRef)
   console.log(plants)
 })
 
-
-
-
-
-
 export default function Form() {
     const [name, setName] = useState("")
     const [des, setDes] = useState("")
     const [id, setId] = useState("")
 
     const handleSubmit = (e) => {
-        // e.preventDefault();
-        // alert('submiting new name '+ name)
+        e.preventDefault();
         addDoc(colRef,{
           name: name,
           description: des,
         })
-        
-        
-        
-        console.log(name)
+        setName("");
+        setDes("");
     }
     const handleDelete = (e) =>{
-      // e.preventDefault();
-
+      e.preventDefault();
       const docRef = doc(db , 'plants', id)
-
       deleteDoc(docRef)
-      
 
-      
+      setId("");
     }
   return (
     <>
