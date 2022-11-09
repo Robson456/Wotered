@@ -8,6 +8,11 @@ import {
 
 } from 'firebase/firestore'
 
+import {
+  getAuth,
+  createUserWithEmailAndPassword,
+} from 'firebase/auth'
+
 const firebaseConfig = {
   apiKey: "AIzaSyCi48iF8k2XTK8zrFHN2Qzm7WGBu-fOOes",
   authDomain: "woterd-3937a.firebaseapp.com",
@@ -20,6 +25,8 @@ const firebaseConfig = {
 initializeApp(firebaseConfig)
 
 const db = getFirestore()
+const auth = getAuth()
+
 
 const colRef = collection(db, 'plants')
 
@@ -36,6 +43,8 @@ export default function Form() {
     const [name, setName] = useState("")
     const [des, setDes] = useState("")
     const [id, setId] = useState("")
+    const [email, setEmail] = useState("")
+    const [pass, setPass] = useState("")
 
     const handleSubmit = (e) => {
         e.preventDefault();
@@ -52,6 +61,20 @@ export default function Form() {
       deleteDoc(docRef)
 
       setId("");
+    }
+    const handleAuth = (e) =>{
+      e.preventDefault();
+
+      createUserWithEmailAndPassword(auth, email, pass )
+       .then((cred)=>{
+          console.log("User created: ",cred.user)
+       })
+       .catch((err)=>{
+         console.log(err.message)
+       })
+       setEmail('');
+       setPass('');
+       
     }
   return (
     <>
@@ -77,6 +100,24 @@ export default function Form() {
             </label>
 
         </form>
+        <form onSubmit={handleAuth} className="auth">
+          <label >
+              Emial:
+            
+              <input type='text' name='email' value={email} onChange={e=> setEmail(e.target.value)} required />
+
+            </label>
+          <label >
+              Password:
+            
+              <input type='password' name='pass' value={pass} onChange={e=> setPass(e.target.value)} required />
+
+            </label>
+            
+              <input type="submit" value="Login" />
+
+        </form>
+
     </>
     
   )
