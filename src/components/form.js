@@ -11,6 +11,8 @@ import {
 import {
   getAuth,
   createUserWithEmailAndPassword,
+  signOut, signInWithEmailAndPassword,
+  onAuthStateChanged,
 } from 'firebase/auth'
 
 const firebaseConfig = {
@@ -26,9 +28,8 @@ initializeApp(firebaseConfig)
 
 const db = getFirestore()
 const auth = getAuth()
-
-
 const colRef = collection(db, 'plants')
+
 
 onSnapshot(colRef, (snapshot) => {
   let plants = []
@@ -37,6 +38,13 @@ onSnapshot(colRef, (snapshot) => {
     plants.push({...doc.data(), id: doc.id})
   })
   console.log(plants)
+})
+
+
+onAuthStateChanged(auth, (user)=>{
+  console.log('user status changed ', user)
+  
+ 
 })
 
 export default function Form() {
@@ -76,6 +84,28 @@ export default function Form() {
        setPass('');
        
     }
+    const handleLogin=(e)=>{
+      e.preventDefault(); 
+
+      signInWithEmailAndPassword(auth, email, pass)
+        .then((cred)=>{
+          console.log('user logged in ', cred.user)
+        })
+        .catch((err)=>{
+          console.log(err.message)
+        })
+    }
+
+    const logout=()=>{
+
+      signOut(auth)
+        .then(()=>{
+          console.log('log out')
+        })
+        .catch((err)=>{
+          console.log(err.message)
+        })
+    }
   return (
     <>
       <form onSubmit={handleSubmit} className="add">
@@ -100,7 +130,28 @@ export default function Form() {
             </label>
 
         </form>
+
         <form onSubmit={handleAuth} className="auth">
+          <h3>Signup</h3>
+          <label >
+              Emial:
+            
+              <input type='text' name='email' value={email} onChange={e=> setEmail(e.target.value)} required />
+
+            </label>
+          <label >
+              Password:
+            
+              <input type='password' name='pass' value={pass} onChange={e=> setPass(e.target.value)} required />
+
+            </label>
+            
+              <input type="submit" value="Signup" />
+
+        </form>
+
+        <form onSubmit={handleLogin} className="login">
+        <h3>Login</h3>
           <label >
               Emial:
             
@@ -117,6 +168,7 @@ export default function Form() {
               <input type="submit" value="Login" />
 
         </form>
+        <button className='logout' onClick={logout}>logout</button>
 
     </>
     
