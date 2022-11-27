@@ -4,7 +4,7 @@ import {
   getFirestore,
   collection,
   onSnapshot,
-  addDoc, deleteDoc, doc, 
+  addDoc, deleteDoc, doc, setDoc
 
 } from 'firebase/firestore'
 
@@ -14,6 +14,7 @@ import {
   signOut, signInWithEmailAndPassword,
   onAuthStateChanged,
 } from 'firebase/auth'
+    
 
 const firebaseConfig = {
   apiKey: "AIzaSyCi48iF8k2XTK8zrFHN2Qzm7WGBu-fOOes",
@@ -28,62 +29,83 @@ initializeApp(firebaseConfig)
 
 const db = getFirestore()
 const auth = getAuth()
-const colRef = collection(db, 'plants')
-
-
-onSnapshot(colRef, (snapshot) => {
-  let plants = []
-
-  snapshot.docs.forEach((doc)=>{
-    plants.push({...doc.data(), id: doc.id})
-  })
-  console.log(plants)
-})
 
 
 onAuthStateChanged(auth, (user)=>{
-  console.log('user status changed ', user)
-  
- 
+  if(user){
+    console.log('user status changed ',user.email, user.uid)
+    onSnapshot(collection(db,`users/${user.uid}/plants`), (snapshot) => {
+      let plants = []
+      snapshot.docs.forEach((doc)=>{
+        plants.push({...doc.data(), id: doc.id})
+      })
+      console.log(plants)
+      
+    })
+    
+    
+  }else{
+    console.log("PLS Login")
+  }
 })
 
-export default function Form() {
-    const [name, setName] = useState("")
-    const [des, setDes] = useState("")
-    const [id, setId] = useState("")
-    const [email, setEmail] = useState("")
-    const [pass, setPass] = useState("")
 
-    const handleSubmit = (e) => {
-        e.preventDefault();
-        addDoc(colRef,{
-          name: name,
-          description: des,
-        })
-        setName("");
-        setDes("");
-    }
-    const handleDelete = (e) =>{
+export default function Form() {
+  const [name, setName] = useState("")
+  const [des, setDes] = useState("")
+  const [id, setId] = useState("")
+  const [email, setEmail] = useState("")
+  const [pass, setPass] = useState("")
+
+//add plant
+const handleSubmit = (e) => {
+  const user = auth.currentUser;
       e.preventDefault();
-      const docRef = doc(db , 'plants', id)
+      console.log("user id " + user.uid)
+      addDoc(collection(db, `users/${user.uid}/plants`),{
+        name: name,
+        description: des,
+        
+      })
+      
+      setName("");
+      setDes("");
+  }
+
+  
+   
+    //delete plant
+    const handleDelete = (e) =>{
+      const user = auth.currentUser;
+      e.preventDefault();
+      const docRef = doc(db ,`users/${user.uid}/plants`, id)
       deleteDoc(docRef)
 
       setId("");
     }
+    //creating user
     const handleAuth = (e) =>{
       e.preventDefault();
 
-      createUserWithEmailAndPassword(auth, email, pass )
-       .then((cred)=>{
-          console.log("User created: ",cred.user)
+
+      createUserWithEmailAndPassword(auth, email, pass ).then((cred)=>{
+        return  setDoc(doc(db, "users", cred.user.uid), {
+          email: email,
+          password: pass,
+          userId: cred.user.uid
+        });
+       }).then(()=>{
+        // console.log("User created: ",cred.user.uid)
+        setEmail('');
+        setPass('');
        })
        .catch((err)=>{
          console.log(err.message)
        })
-       setEmail('');
-       setPass('');
+       
        
     }
+    //loging in user
     const handleLogin=(e)=>{
       e.preventDefault(); 
 
@@ -94,8 +116,10 @@ export default function Form() {
         .catch((err)=>{
           console.log(err.message)
         })
+        setEmail('');
+        setPass('');
     }
-
+    //login out user
     const logout=()=>{
 
       signOut(auth)
@@ -105,6 +129,8 @@ export default function Form() {
         .catch((err)=>{
           console.log(err.message)
         })
+        setEmail('');
+        setPass('');
     }
   return (
     <>
